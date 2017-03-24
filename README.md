@@ -12,27 +12,36 @@ go-github requires Go version 1.7 or greater.
 ## Usage ##
 
 ```go
-import "github.com/google/go-github/github"
-```
+package main
 
-Construct a new GitHub client, then use the various services on the client to
-access different parts of the GitHub API. For example:
+import (
+	"context"
+	"fmt"
+	"github.com/google/go-github/github"
+)
 
-```go
-client := github.NewClient(nil)
+func main() {
+	// Construt a new GitHub client
+	client := github.NewClient(nil)
+	ctx := context.Background()
 
-// list all organizations for user "willnorris"
-orgs, _, err := client.Organizations.List(ctx, "willnorris", nil)
-```
+	// List all organizations for user "willnorris"
+	orgs, _, err := client.Organizations.List(ctx, "willnorris", nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(repos)
 
-Some API methods have optional parameters that can be passed. For example:
+	// some API methods have optional parameters that can be passed
+	opt := &github.RepositoryListByOrgOptions{Type: "public"}
 
-```go
-client := github.NewClient(nil)
-
-// list public repositories for org "github"
-opt := &github.RepositoryListByOrgOptions{Type: "public"}
-repos, _, err := client.Repositories.ListByOrg(ctx, "github", opt)
+	// list public repositories for org "github"
+	repos, _, err := client.Repositories.ListByOrg(ctx, "github", opt)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(orgs)
+}
 ```
 
 The services of a client divide the API into logical chunks and correspond to
@@ -49,19 +58,28 @@ library, but you can always use any other library that provides an
 API token][]), you can use it with the oauth2 library using:
 
 ```go
-import "golang.org/x/oauth2"
+package main
+
+import (
+	"context"
+	"fmt"
+	"github.com/google/go-github/github"
+	"golang.org/x/oauth2"
+)
 
 func main() {
-  ctx := context.Background()
-  ts := oauth2.StaticTokenSource(
-    &oauth2.Token{AccessToken: "... your access token ..."},
-  )
-  tc := oauth2.NewClient(ctx, ts)
+	ctx := context.Background()
+	sts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: "$YOUR_ACCESS_TOKEN"},
+	)
+	client := github.NewClient(oauth2.NewClient(ctx, sts))
 
-  client := github.NewClient(tc)
-
-  // list all repositories for the authenticated user
-  repos, _, err := client.Repositories.List(ctx, "", nil)
+	// list all repositories for the authenticated user
+	repos, _, err := client.Repositories.List(ctx, "", nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(repos)
 }
 ```
 
